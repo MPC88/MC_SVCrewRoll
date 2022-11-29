@@ -83,7 +83,11 @@ namespace MC_SVCrewRoll
             if (__instance.station.factionIndex == (int)TFaction.Tecnomancers)
                 return;
 
-            dockingUIInstance = __instance;
+            if (dockingUIInstance != __instance)
+            {
+                dockingUIInstance = __instance;
+                UI.Initialise(___lobbyPanel);
+            }
 
             if (code != lobbyPanelCode)
             {
@@ -92,7 +96,6 @@ namespace MC_SVCrewRoll
                 return;
             }
 
-            UI.Initialise(___lobbyPanel);
             UI.CrewBtnSetActive(true);
             if (UI.rerollWasLastLobbyPanel)
                 UI.MainPanelSetActive(true);
@@ -105,9 +108,12 @@ namespace MC_SVCrewRoll
             if (__instance.station.factionIndex == (int)TFaction.Tecnomancers)
                 return;
 
-            dockingUIInstance = __instance;
+            if (dockingUIInstance != __instance)
+            {
+                dockingUIInstance = __instance;
+                UI.Initialise(___lobbyPanel);
+            }
 
-            UI.Initialise(___lobbyPanel);
             UI.CrewBtnSetActive(true);
         }
 
