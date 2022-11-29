@@ -48,12 +48,7 @@ namespace MC_SVCrewRoll
             List<object> lockedItems = data.Get(crew.id);
             object skillOrBonus;
 
-            if (sid is SubBonusItemData)
-            {
-                SubBonusItemData sbid = sid as SubBonusItemData;
-                skillOrBonus = (crew.skills[sbid.skillIndex].skillBonus[sbid.bonusIndex].GetShipBonus() as SB_FleetShipBonuses).shipBonuses[sbid.subBonusIndex];                
-            }
-            else if (sid is BonusItemData)
+            if (sid is BonusItemData)
             {
                 BonusItemData bid = sid as BonusItemData;
                 skillOrBonus = crew.skills[bid.skillIndex].skillBonus[bid.bonusIndex];
@@ -167,17 +162,8 @@ namespace MC_SVCrewRoll
 
             foreach (SkillShipBonus ssb in skill.skillBonus)
             {
-                if (ssb.GetShipBonus() is SB_FleetShipBonuses)
-                {
-                    foreach (ShipBonus sb in (ssb.GetShipBonus() as SB_FleetShipBonuses).shipBonuses)
-                        if (data.Get(crew.id).Contains(sb))
-                            locked.Add(sb);
-                }
-                else
-                {
-                    if (data.Get(crew.id).Contains(ssb))
+                if (data.Get(crew.id).Contains(ssb))
                         locked.Add(ssb);
-                }
             }
 
             if (locked.Count > 0)
@@ -212,34 +198,11 @@ namespace MC_SVCrewRoll
             int indexShift = 0;
             foreach (SkillShipBonus ssb in crew.skills[skillIndex].skillBonus)
             {
-                if (ssb.GetShipBonus() is SB_FleetShipBonuses)
+                if (!data.Get(crew.id).Contains(ssb))
                 {
-                    SB_FleetShipBonuses fleetBonus = ssb.GetShipBonus() as SB_FleetShipBonuses;
-
-                    // Remove unlocked fleet ship bonuses
-                    List<ShipBonus> newShipBonuses = new List<ShipBonus>(fleetBonus.shipBonuses);
-                    foreach (ShipBonus sb in fleetBonus.shipBonuses)
-                    {
-                        Main.log.LogInfo(fleetBonus.shipBonuses.Length);
-                        if (!data.Get(crew.id).Contains(sb))
-                        {
-                            newShipBonuses.Remove(sb);
-                            newBonuses[crew.skills[skillIndex].skillBonus.IndexOf(ssb) - indexShift].level--;
-                            modsMade = true;
-                        }
-                    }
-
-                    // Update fleet ship bonuses in new bonuses list
-                    (newBonuses[crew.skills[skillIndex].skillBonus.IndexOf(ssb) - indexShift].GetShipBonus() as SB_FleetShipBonuses).shipBonuses = newShipBonuses.ToArray();
-                }
-                else
-                {
-                    if (!data.Get(crew.id).Contains(ssb))
-                    {
-                        newBonuses.Remove(ssb);
-                        indexShift++;
-                        modsMade = true;
-                    }
+                    newBonuses.Remove(ssb);
+                    indexShift++;
+                    modsMade = true;
                 }
             }
 

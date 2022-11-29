@@ -193,19 +193,8 @@ namespace MC_SVCrewRoll
                 {
                     SkillShipBonus bonus = skill.skillBonus[bonusI];
 
-                    if (bonus.GetShipBonus() is SB_FleetShipBonuses shipBonus)
-                    {
-                        for (int subBonusI = 0; subBonusI < shipBonus.shipBonuses.Length; subBonusI++)
-                        {
-                            CreateBonusItem(skill, bonus, shipBonus.shipBonuses[subBonusI], itemCount, skillI, bonusI, subBonusI);
-                            itemCount++;
-                        }
-                    }
-                    else
-                    {
-                        CreateBonusItem(skill, bonus, itemCount, skillI, bonusI);
-                        itemCount++;
-                    }
+                    CreateBonusItem(skill, bonus, itemCount, skillI, bonusI);
+                    itemCount++;
                 }
             }
 
@@ -296,7 +285,10 @@ namespace MC_SVCrewRoll
             bonusItemGO.layer = skillBonusPanel.layer;
 
             // Name
-            bonusItemGO.transform.Find("Name").gameObject.GetComponent<Text>().text =
+            string text = "";
+            if (bonus.GetShipBonus() is SB_FleetShipBonuses)
+                text = "Fleet: ";
+            bonusItemGO.transform.Find("Name").gameObject.GetComponent<Text>().text = text +
                 bonus.GetString(
                     ColorSys.infoText3,
                     null,
@@ -317,39 +309,6 @@ namespace MC_SVCrewRoll
             bonusItemGO.transform.Find("Price").GetComponent<Text>().text = CrewReroll.GeneratePrice(bonus.level, Main.cfgBonusBasePrice.Value).ToString();
         }
 
-        private static void CreateBonusItem(CrewSkill skill, SkillShipBonus bonus, ShipBonus subBonus, int itemCount, int skillIndex, int bonusIndex, int subBonusIndex)
-        {
-            GameObject bonusItemGO = GameObject.Instantiate(bonusItem);
-            bonusItemGO.transform.SetParent(skillBonusPanel.transform, false);
-            bonusItemGO.transform.localPosition = new Vector3(
-                bonusItemGO.transform.localPosition.x,
-                bonusItemGO.transform.localPosition.y - (skillBonusSpacing * itemCount),
-                bonusItemGO.transform.localPosition.z);
-            bonusItemGO.layer = skillBonusPanel.layer;
-
-            // Name
-            bonusItemGO.transform.Find("Name").gameObject.GetComponent<Text>().text =
-                "Fleet: " +
-                subBonus.GetStr(
-                    bonus.level,
-                    bonus.modifier,
-                    ColorSys.infoText3);
-
-            // Data Reference
-            SubBonusItemData bonusItemData = bonusItemGO.AddComponent<SubBonusItemData>();
-            bonusItemData.skillIndex = skillIndex;
-            bonusItemData.bonusIndex = bonusIndex;
-            bonusItemData.subBonusIndex = subBonusIndex;
-
-            // Lock
-            Transform lockTrans = bonusItemGO.transform.Find("Lock");
-            lockTrans.GetComponent<Toggle>().isOn = CrewReroll.data.Get(CrewReroll.crew.id).Contains(subBonus);
-            AddLockTrigger(bonusItemGO.transform.Find("Lock").GetComponent<EventTrigger>());
-
-            // Price
-            bonusItemGO.transform.Find("Price").GetComponent<Text>().text = CrewReroll.GeneratePrice(bonus.level, Main.cfgBonusBasePrice.Value).ToString();
-        }
-
         private static void UpdatePrices()
         {
             CrewReroll.GetSkillRerollPrice();
@@ -362,11 +321,8 @@ namespace MC_SVCrewRoll
             {
                 Transform item = skillBonusPanel.transform.GetChild(childI);
                 SkillItemData sid = item.GetComponent<SkillItemData>();
-
-                if (sid is SubBonusItemData)
-                    item.Find("Price").GetComponent<Text>().text =
-                        CrewReroll.GeneratePrice(CrewReroll.crew.skills[sid.skillIndex].skillBonus[(sid as BonusItemData).bonusIndex].level, Main.cfgBonusBasePrice.Value).ToString();
-                else if (sid is BonusItemData)
+                
+                if (sid is BonusItemData)
                     item.Find("Price").GetComponent<Text>().text =
                         CrewReroll.GeneratePrice(CrewReroll.crew.skills[sid.skillIndex].skillBonus[(sid as BonusItemData).bonusIndex].level, Main.cfgBonusBasePrice.Value).ToString();
                 else
@@ -475,11 +431,6 @@ namespace MC_SVCrewRoll
         internal class BonusItemData : SkillItemData
         {
             internal int bonusIndex = -1;
-        }
-
-        internal class SubBonusItemData : BonusItemData
-        {
-            internal int subBonusIndex = -1;
         }
     }
 }
