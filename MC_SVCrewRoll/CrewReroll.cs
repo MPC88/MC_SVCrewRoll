@@ -253,13 +253,19 @@ namespace MC_SVCrewRoll
         [Serializable]
         internal class PersistentData
         {
+            
             private List<int> crewIDs;
-            private List<List<object>> locks;
+            private List<List<int>> lockedSkills;
+            private List<List<List<int>>> lockedBonuses;
+
+            // Due to natural learning and sorts reshuffling skill/bonus lists
+            [NonSerialized]
+            private List<List<object>> runtimeLocks;
 
             internal PersistentData()
             {
                 crewIDs = new List<int>();
-                locks = new List<List<object>>();
+                runtimeLocks = new List<List<object>>();
             }
 
             internal int Count()
@@ -273,12 +279,12 @@ namespace MC_SVCrewRoll
                     return;
 
                 crewIDs.Add(id);
-                locks.Add(new List<object>());
+                runtimeLocks.Add(new List<object>());
             }
 
             internal void Remove(int id)
             {
-                locks.RemoveAt(crewIDs.IndexOf(id));
+                runtimeLocks.RemoveAt(crewIDs.IndexOf(id));
                 crewIDs.Remove(id);
             }
 
@@ -293,7 +299,7 @@ namespace MC_SVCrewRoll
             internal List<object> Get(int id)
             {
                 if (crewIDs.Contains(id))
-                    return locks[crewIDs.IndexOf(id)];
+                    return runtimeLocks[crewIDs.IndexOf(id)];
 
                 return null;
             }
@@ -304,6 +310,63 @@ namespace MC_SVCrewRoll
                     return;
 
                 locks[crewIDs.IndexOf(id)] = locks;
+            }
+
+            internal void PrepareSaveData()
+            {
+                lockedSkills = new List<List<int>>();
+                lockedBonuses = new List<List<List<int>>>();
+
+                foreach (int id in crewIDs)
+                {
+                    lockedSkills.Add(new List<int>());
+                    lockedBonuses.Add(new List<List<int>>());
+                    int dataIndex = crewIDs.IndexOf(id);
+
+                    CrewMember crewMember = CrewDB.GetCrewMember(id);
+                    if (crewMember != null)
+                    {
+                        foreach (CrewSkill skill in crewMember.skills)
+                        {
+                            int skillIndex = crewMember.skills.IndexOf(skill);
+                            
+                            if (runtimeLocks[dataIndex].Contains(skill))
+                                lockedSkills[dataIndex].Add(skillIndex);
+
+                            List<int> skillLockedBonuses = new List<int>();
+                            foreach (SkillShipBonus ssb in skill.skillBonus)
+                                if (runtimeLocks[dataIndex].Contains(ssb))
+                                    skillLockedBonuses.Add(skill.skillBonus.IndexOf(ssb));
+                            lockedBonuses[dataIndex].Add(skillLockedBonuses);
+                        }
+                    }
+                }
+            }
+
+            internal void LoadRuntimeLocks()
+            {
+                runtimeLocks = new List<List<object>>();
+                foreach (int id in crewIDs)
+                {
+                    runtimeLocks.Add(new List<object>());
+                    int dataIndex = crewIDs.IndexOf(id);
+                    CrewMember crewMember = CrewDB.GetCrewMember(id);
+
+                    if (crewMember != null)
+                    {
+                        foreach (int skillIndex in lockedSkills[dataIndex])
+                            if (skillIndex >= 0 && skillIndex < crewMember.skills.Count)
+                                runtimeLocks[dataIndex].Add(crewMember.skills[skillIndex]);
+
+                        foreach (List<int> skillWithLockedBonuses in lockedBonuses[dataIndex])
+                        {
+                            CrewSkill skill = crewMember.skills[lockedBonuses[dataIndex].IndexOf(skillWithLockedBonuses)];
+                            foreach (int bonusIndex in skillWithLockedBonuses)
+                                if (bonusIndex >= 0 && bonusIndex < skill.skillBonus.Count)
+                                    runtimeLocks[dataIndex].Add(skill.skillBonus[bonusIndex]);
+                        }
+                    }
+                }
             }
         }
     }

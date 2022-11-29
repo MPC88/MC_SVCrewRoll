@@ -168,6 +168,8 @@ namespace MC_SVCrewRoll
             if (CrewReroll.data == null || CrewReroll.data.Count() == 0)
                 return;
 
+            CrewReroll.data.PrepareSaveData();
+
             string tempPath = Application.dataPath + GameData.saveFolderName + modSaveFolder + "LOTemp.dat";
 
             if (!Directory.Exists(Path.GetDirectoryName(tempPath)))
@@ -207,14 +209,22 @@ namespace MC_SVCrewRoll
                     if (loadData == null)
                         CrewReroll.data = new CrewReroll.PersistentData();
                     else
+                    {
                         CrewReroll.data = loadData;
+                        CrewReroll.data.LoadRuntimeLocks();
+                    }
+
+                    if(loadData == null)
+                    {
+                        log.LogInfo("null");
+                    }
                 }
                 else
                     CrewReroll.data = new CrewReroll.PersistentData();
             }
             catch
             {
-                SideInfo.AddMsg("<color=red>Loadouts mod load failed.</color>");
+                SideInfo.AddMsg("<color=red>CrewRoll mod load failed.</color>");
             }
         }
     }

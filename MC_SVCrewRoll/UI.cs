@@ -293,7 +293,7 @@ namespace MC_SVCrewRoll
                     ColorSys.infoText3,
                     null,
                     false,
-                    false).Replace("\n", "").Replace("\t", " ");
+                    false).Replace("\n", "").Replace("\t", " ").Replace(Lang.Get(23, 137) + ":", "");
 
             // Data reference
             BonusItemData bonusItemData = bonusItemGO.AddComponent<BonusItemData>();
