@@ -262,6 +262,11 @@ namespace MC_SVCrewRoll
                 locks = new List<List<object>>();
             }
 
+            internal int Count()
+            {
+                return crewIDs.Count;
+            }
+
             internal void Add(int id)
             {
                 if (crewIDs.Contains(id))

@@ -3,7 +3,9 @@ using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
 namespace MC_SVCrewRoll
@@ -14,13 +16,15 @@ namespace MC_SVCrewRoll
         // BepInEx
         public const string pluginGuid = "mc.starvalor.crewroll";
         public const string pluginName = "SV Crew Roll";
-        public const string pluginVersion = "1.0.0";
+        public const string pluginVersion = "1.0";
 
         // Star Valor
         internal const int crewItemType = 5;
         private const int lobbyPanelCode = 1;
 
         // Mod
+        private const string modSaveFolder = "/MCSVSaveData/";  // /SaveData/ sub folder
+        private const string modSaveFilePrefix = "CrewRoll_"; // modSaveFilePrefixNN.dat
         public static ConfigEntry<int> cfgSkillBasePrice;
         public static ConfigEntry<int> cfgBonusBasePrice;
         public static ConfigEntry<bool> cfgRetainLevel;
@@ -67,9 +71,9 @@ namespace MC_SVCrewRoll
                 "Base price to lock a bonus");
             cfgRetainLevel = Config.Bind<bool>(
                 "Behaviour",
-                "Retain levels on reroll?",
+                "Retain skill levels?",
                 true,
-                "If enabled, when skills or bonuses are rerolled, they are replaced with skills or bonuses of equal level.");
+                "If enabled, when skills are rerolled, they are replaced with skills of equal level.");
         }
         
         [HarmonyPatch(typeof(DockingUI), nameof(DockingUI.OpenPanel))]
@@ -150,6 +154,68 @@ namespace MC_SVCrewRoll
         private static void DockingUICloseLobbyPanels_Post()
         {
             UI.MainPanelSetActive(false);
+        }
+
+        [HarmonyPatch(typeof(GameData), nameof(GameData.SaveGame))]
+        [HarmonyPrefix]
+        private static void GameDataSaveGame_Pre()
+        {
+            SaveGame();
+        }
+
+        private static void SaveGame()
+        {
+            if (CrewReroll.data == null || CrewReroll.data.Count() == 0)
+                return;
+
+            string tempPath = Application.dataPath + GameData.saveFolderName + modSaveFolder + "LOTemp.dat";
+
+            if (!Directory.Exists(Path.GetDirectoryName(tempPath)))
+                Directory.CreateDirectory(Path.GetDirectoryName(tempPath));
+
+            if (File.Exists(tempPath))
+                File.Delete(tempPath);
+
+            BinaryFormatter binaryFormatter = new BinaryFormatter();
+            FileStream fileStream = File.Create(tempPath);
+            binaryFormatter.Serialize(fileStream, CrewReroll.data);
+            fileStream.Close();
+
+            File.Copy(tempPath, Application.dataPath + GameData.saveFolderName + modSaveFolder + modSaveFilePrefix + GameData.gameFileIndex.ToString("00") + ".dat", true);
+            File.Delete(tempPath);
+        }
+
+        [HarmonyPatch(typeof(MenuControl), nameof(MenuControl.LoadGame))]
+        [HarmonyPostfix]
+        private static void MenuControlLoadGame_Post()
+        {
+            LoadData(GameData.gameFileIndex.ToString("00"));
+        }
+
+        private static void LoadData(string saveIndex)
+        {
+            string modData = Application.dataPath + GameData.saveFolderName + modSaveFolder + modSaveFilePrefix + saveIndex + ".dat";
+            try
+            {
+                if (!saveIndex.IsNullOrWhiteSpace() && File.Exists(modData))
+                {
+                    BinaryFormatter binaryFormatter = new BinaryFormatter();
+                    FileStream fileStream = File.Open(modData, FileMode.Open);
+                    CrewReroll.PersistentData loadData = (CrewReroll.PersistentData)binaryFormatter.Deserialize(fileStream);
+                    fileStream.Close();
+
+                    if (loadData == null)
+                        CrewReroll.data = new CrewReroll.PersistentData();
+                    else
+                        CrewReroll.data = loadData;
+                }
+                else
+                    CrewReroll.data = new CrewReroll.PersistentData();
+            }
+            catch
+            {
+                SideInfo.AddMsg("<color=red>Loadouts mod load failed.</color>");
+            }
         }
     }
 }
