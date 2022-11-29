@@ -80,6 +80,9 @@ namespace MC_SVCrewRoll
         [HarmonyPostfix]
         private static void DockingUIOpenPanel_Post(DockingUI __instance, GameObject ___lobbyPanel, int code)
         {
+            if (__instance.station.factionIndex == (int)TFaction.Tecnomancers)
+                return;
+
             dockingUIInstance = __instance;
 
             if (code != lobbyPanelCode)
@@ -99,6 +102,9 @@ namespace MC_SVCrewRoll
         [HarmonyPostfix]
         private static void DockingUIStartDocking_Post(DockingUI __instance, GameObject ___lobbyPanel)
         {
+            if (__instance.station.factionIndex == (int)TFaction.Tecnomancers)
+                return;
+
             dockingUIInstance = __instance;
 
             UI.Initialise(___lobbyPanel);
