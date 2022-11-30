@@ -120,13 +120,11 @@ namespace MC_SVCrewRoll
                     System.Random rand = new System.Random(skill.GetHashCode() * DateTime.UtcNow.Millisecond);
                     newSkills.Remove(skill);
                     int nextSkill = rand.Next(0, 7);
-                    int rolls = 0;
                     while (rolledThisCycle.Contains(nextSkill) &&
                         (nextSkill != (int)skill.ID ? crew.GetSkillRank((CrewPosition)nextSkill) >= 0 : false) && 
-                        rolls < 5)
+                        crew.skills.Count < 5)
                     {
                         nextSkill = rand.Next(0, 7);
-                        rolls++;
                     }
                     rolledThisCycle.Add(nextSkill);
                     CrewSkill newSkill = new CrewSkill(nextSkill, 0, crew.aiChar.level, crew.rarity, crew, true, rand);
