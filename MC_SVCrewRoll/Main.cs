@@ -16,7 +16,7 @@ namespace MC_SVCrewRoll
         // BepInEx
         public const string pluginGuid = "mc.starvalor.crewroll";
         public const string pluginName = "SV Crew Roll";
-        public const string pluginVersion = "1.0";
+        public const string pluginVersion = "1.0.1";
 
         // Star Valor
         internal const int crewItemType = 5;
@@ -48,13 +48,13 @@ namespace MC_SVCrewRoll
             string bundleName = "mc_svcrewroll";
             AssetBundle assets = AssetBundle.LoadFromFile($"{pluginfolder}\\{bundleName}");
             GameObject pack = assets.LoadAsset<GameObject>("Assets/mc_crewroll.prefab");
-            UI.mainPanel = pack.transform.Find("Canvas").Find("CrewRR").gameObject;
-            UI.crewBtnIcon = pack.transform.Find("BtnIcon").gameObject.GetComponent<SpriteRenderer>().sprite;
-            UI.crewListItem = pack.transform.Find("CrewListItem").gameObject;
-            UI.skillItem = pack.transform.Find("SkillItem").gameObject;
-            UI.bonusItem = pack.transform.Find("BonusItem").gameObject;
-            UI.addSkillItem = pack.transform.Find("AddSkillItem").gameObject;
-            UI.confirmPanel = pack.transform.Find("ConfirmDlg").gameObject;
+            UI.mainPanel = pack.transform.Find("mc_crewrollCanvas").Find("mc_crewrollCrewRR").gameObject;
+            UI.crewBtnIcon = pack.transform.Find("mc_crewrollBtnIcon").gameObject.GetComponent<SpriteRenderer>().sprite;
+            UI.crewListItem = pack.transform.Find("mc_crewrollCrewListItem").gameObject;
+            UI.skillItem = pack.transform.Find("mc_crewrollSkillItem").gameObject;
+            UI.bonusItem = pack.transform.Find("mc_crewrollBonusItem").gameObject;
+            UI.addSkillItem = pack.transform.Find("mc_crewrollAddSkillItem").gameObject;
+            UI.confirmPanel = pack.transform.Find("mc_crewrollConfirmDlg").gameObject;
         }
 
         private void Configure()
@@ -83,17 +83,17 @@ namespace MC_SVCrewRoll
             if (__instance.station.factionIndex == (int)TFaction.Tecnomancers)
                 return;
 
-            if (dockingUIInstance != __instance)
-            {
-                dockingUIInstance = __instance;
-                UI.Initialise(___lobbyPanel);
-            }
-
             if (code != lobbyPanelCode)
             {
                 UI.MainPanelSetActive(false);
                 UI.CrewBtnSetActive(false);
                 return;
+            }
+
+            if (dockingUIInstance != __instance)
+            {
+                dockingUIInstance = __instance;
+                UI.Initialise(___lobbyPanel);
             }
 
             UI.CrewBtnSetActive(true);
@@ -113,8 +113,6 @@ namespace MC_SVCrewRoll
                 dockingUIInstance = __instance;
                 UI.Initialise(___lobbyPanel);
             }
-
-            UI.CrewBtnSetActive(true);
         }
 
         [HarmonyPatch(typeof(DockingUI), nameof(DockingUI.CloseDockingStation))]

@@ -48,6 +48,7 @@ namespace MC_SVCrewRoll
 
             Transform srcBtn = mainButtons.GetChild(3);
             crewBtn = GameObject.Instantiate(srcBtn.gameObject);
+            crewBtn.gameObject.name = "LobbyCrewButton";
             crewBtn.transform.Find("Image").GetComponentInChildren<Image>().sprite = crewBtnIcon;
             crewBtn.transform.SetParent(srcBtn.parent);
             crewBtn.transform.localPosition = new Vector3(
@@ -72,14 +73,14 @@ namespace MC_SVCrewRoll
             mainPanelI.transform.position = lobby.transform.position;
             mainPanelI.transform.localScale = lobby.transform.localScale;
             mainPanelI.SetActive(false);
-            crewMemberName = mainPanelI.transform.Find("MainPanel").Find("CrewMemberName").gameObject.GetComponent<Text>();
-            rerollSkillsBtn = mainPanelI.transform.Find("MainPanel").Find("RollSkills").gameObject;
-            topCreditsIcon = mainPanelI.transform.Find("MainPanel").Find("CreditsIcon").gameObject;
-            rerollSkillsPrice = mainPanelI.transform.Find("MainPanel").Find("SkillPrice").gameObject.GetComponent<Text>();
-            skillBonusPanel = mainPanelI.transform.Find("MainPanel").Find("SkillBonusList").GetChild(0).GetChild(0).gameObject;
+            crewMemberName = mainPanelI.transform.Find("mc_crewrollMainPanel").Find("mc_crewrollCrewMemberName").gameObject.GetComponent<Text>();
+            rerollSkillsBtn = mainPanelI.transform.Find("mc_crewrollMainPanel").Find("mc_crewrollRollSkills").gameObject;
+            topCreditsIcon = mainPanelI.transform.Find("mc_crewrollMainPanel").Find("mc_crewrollCreditsIcon").gameObject;
+            rerollSkillsPrice = mainPanelI.transform.Find("mc_crewrollMainPanel").Find("mc_crewrollSkillPrice").gameObject.GetComponent<Text>();
+            skillBonusPanel = mainPanelI.transform.Find("mc_crewrollMainPanel").Find("mc_crewrollSkillBonusList").GetChild(0).GetChild(0).gameObject;
 
             // Crew list
-            crewList = mainPanelI.transform.Find("CrewList").GetChild(0).GetChild(0).gameObject;
+            crewList = mainPanelI.transform.Find("mc_crewrollCrewList").GetChild(0).GetChild(0).gameObject;
 
             // Confirm dialog
             confirmPanelI = GameObject.Instantiate(confirmPanel);
@@ -87,7 +88,7 @@ namespace MC_SVCrewRoll
             confirmPanelI.layer = lobby.layer;
             Button.ButtonClickedEvent cancelButtonClickedEvent = new Button.ButtonClickedEvent();
             cancelButtonClickedEvent.AddListener(ConfirmPanelCancelClick);
-            confirmPanelI.transform.Find("Panel").Find("Cancel").GetComponent<Button>().onClick = cancelButtonClickedEvent;
+            confirmPanelI.transform.Find("mc_crewrollPanel").Find("mc_crewrollCancel").GetComponent<Button>().onClick = cancelButtonClickedEvent;
             confirmPanelI.SetActive(false);
         }
 
@@ -210,12 +211,12 @@ namespace MC_SVCrewRoll
                         addSkillItemGO.transform.localPosition.z);
                     addSkillItemGO.layer = skillBonusPanel.layer;
                     int skillPrice = CrewReroll.GetAddSkillPrice() * i;
-                    addSkillItemGO.transform.Find("Price").GetComponent<Text>().text = skillPrice.ToString();
+                    addSkillItemGO.transform.Find("mc_crewrollPrice").GetComponent<Text>().text = skillPrice.ToString();
                     Button.ButtonClickedEvent skillButtonClickedEvent = new Button.ButtonClickedEvent();
                     UnityAction skillButtonAction = null;
                     skillButtonAction += () => AddSkillClick(skillPrice);
                     skillButtonClickedEvent.AddListener(skillButtonAction);
-                    addSkillItemGO.transform.Find("Add").GetComponent<Button>().onClick = skillButtonClickedEvent;
+                    addSkillItemGO.transform.Find("mc_crewrollAdd").GetComponent<Button>().onClick = skillButtonClickedEvent;
                     itemCount++;
                 }
             }
@@ -234,7 +235,7 @@ namespace MC_SVCrewRoll
             skillItemGO.layer = skillBonusPanel.layer;
 
             // Name
-            skillItemGO.transform.Find("Name").gameObject.GetComponent<Text>().text =
+            skillItemGO.transform.Find("mc_crewrollName").gameObject.GetComponent<Text>().text =
                 Lang.Get(23,
                 skill.Rank(true),
                 ItemDB.GetRarityColor(skill.Rank(true)),
@@ -246,31 +247,31 @@ namespace MC_SVCrewRoll
             skillItemData.skillIndex = skillIndex;
 
             // Lock
-            Transform lockTrans = skillItemGO.transform.Find("Lock");
+            Transform lockTrans = skillItemGO.transform.Find("mc_crewrollLock");
             lockTrans.GetComponent<Toggle>().isOn = CrewReroll.data.Get(CrewReroll.crew.id).Contains(skill);
-            AddLockTrigger(skillItemGO.transform.Find("Lock").GetComponent<EventTrigger>());
+            AddLockTrigger(skillItemGO.transform.Find("mc_crewrollLock").GetComponent<EventTrigger>());
 
             // Price
             int price = CrewReroll.GeneratePrice(skill.Rank(false), Main.cfgSkillBasePrice.Value);
-            skillItemGO.transform.Find("Price").GetComponent<Text>().text = price.ToString();
+            skillItemGO.transform.Find("mc_crewrollPrice").GetComponent<Text>().text = price.ToString();
 
             // Reroll
             Button.ButtonClickedEvent rerollButtonClickedEvent = new Button.ButtonClickedEvent();
             UnityAction rerollButtonAction = null;
             rerollButtonAction += () => RerollBonusesClick(price, skillIndex);
             rerollButtonClickedEvent.AddListener(rerollButtonAction);
-            skillItemGO.transform.Find("Roll").GetComponent<Button>().onClick = rerollButtonClickedEvent;
+            skillItemGO.transform.Find("mc_crewrollRoll").GetComponent<Button>().onClick = rerollButtonClickedEvent;
 
             // Add
             bool show = (int)Main.crewSkillGetQuantityShipBonuses.Invoke(skill, null) < (int)Main.crewSkillMaxQuantityShipBonuses.Invoke(skill, new object[] { CrewReroll.crew });
-            skillItemGO.transform.Find("Add").gameObject.SetActive(show);
+            skillItemGO.transform.Find("mc_crewrollAdd").gameObject.SetActive(show);
             if (show)
             {
                 Button.ButtonClickedEvent addButtonClickedEvent = new Button.ButtonClickedEvent();
                 UnityAction addButtonAction = null;
                 addButtonAction += () => AddBonusClick(price, skillIndex);
                 addButtonClickedEvent.AddListener(addButtonAction);
-                skillItemGO.transform.Find("Add").GetComponent<Button>().onClick = addButtonClickedEvent;
+                skillItemGO.transform.Find("mc_crewrollAdd").GetComponent<Button>().onClick = addButtonClickedEvent;
             }
         }
 
@@ -288,7 +289,7 @@ namespace MC_SVCrewRoll
             string text = "";
             if (bonus.GetShipBonus() is SB_FleetShipBonuses)
                 text = "Fleet: ";
-            bonusItemGO.transform.Find("Name").gameObject.GetComponent<Text>().text = text +
+            bonusItemGO.transform.Find("mc_crewrollName").gameObject.GetComponent<Text>().text = text +
                 bonus.GetString(
                     ColorSys.infoText3,
                     null,
@@ -301,12 +302,12 @@ namespace MC_SVCrewRoll
             bonusItemData.bonusIndex = bonusIndex;
 
             // Lock
-            Transform lockTrans = bonusItemGO.transform.Find("Lock");
+            Transform lockTrans = bonusItemGO.transform.Find("mc_crewrollLock");
             lockTrans.GetComponent<Toggle>().isOn = CrewReroll.data.Get(CrewReroll.crew.id).Contains(bonus);
-            AddLockTrigger(bonusItemGO.transform.Find("Lock").GetComponent<EventTrigger>());
+            AddLockTrigger(bonusItemGO.transform.Find("mc_crewrollLock").GetComponent<EventTrigger>());
 
             // Price
-            bonusItemGO.transform.Find("Price").GetComponent<Text>().text = CrewReroll.GeneratePrice(bonus.level, Main.cfgBonusBasePrice.Value).ToString();
+            bonusItemGO.transform.Find("mc_crewrollPrice").GetComponent<Text>().text = CrewReroll.GeneratePrice(bonus.level, Main.cfgBonusBasePrice.Value).ToString();
         }
 
         private static void UpdatePrices()
@@ -323,10 +324,10 @@ namespace MC_SVCrewRoll
                 SkillItemData sid = item.GetComponent<SkillItemData>();
                 
                 if (sid is BonusItemData)
-                    item.Find("Price").GetComponent<Text>().text =
+                    item.Find("mc_crewrollPrice").GetComponent<Text>().text =
                         CrewReroll.GeneratePrice(CrewReroll.crew.skills[sid.skillIndex].skillBonus[(sid as BonusItemData).bonusIndex].level, Main.cfgBonusBasePrice.Value).ToString();
                 else
-                    item.Find("Price").GetComponent<Text>().text =
+                    item.Find("mc_crewrollPrice").GetComponent<Text>().text =
                         CrewReroll.GeneratePrice(CrewReroll.crew.skills[sid.skillIndex].Rank(false), Main.cfgSkillBasePrice.Value).ToString();
             }
         }
@@ -381,7 +382,7 @@ namespace MC_SVCrewRoll
                 UnityAction continueButtonAction = null;
                 continueButtonAction += () => ConfirmPanelContinueClick(cost);
                 continueButtonClickedEvent.AddListener(continueButtonAction);
-                confirmPanelI.transform.Find("Panel").Find("Continue").GetComponent<Button>().onClick = continueButtonClickedEvent;                
+                confirmPanelI.transform.Find("mc_crewrollPanel").Find("mc_crewrollContinue").GetComponent<Button>().onClick = continueButtonClickedEvent;                
                 confirmPanelI.SetActive(true);
             }
         }
