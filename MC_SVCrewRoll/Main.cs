@@ -156,7 +156,11 @@ namespace MC_SVCrewRoll
             if (!UI.rerollWasLastLobbyPanel)
                 return;
 
-            UI.Initialise(___lobbyPanel);
+            if (dockingUIInstance != __instance)
+            {
+                dockingUIInstance = __instance;
+                UI.Initialise(___lobbyPanel);
+            }
             AccessTools.Method(typeof(DockingUI), "CloseLobbyPanels").Invoke(__instance, null);
             UI.MainPanelSetActive(true);
         }

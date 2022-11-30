@@ -74,7 +74,7 @@ namespace MC_SVCrewRoll
             mainPanelI.SetActive(false);
             crewMemberName = mainPanelI.transform.Find("MainPanel").Find("CrewMemberName").gameObject.GetComponent<Text>();
             rerollSkillsBtn = mainPanelI.transform.Find("MainPanel").Find("RollSkills").gameObject;
-            topCreditsIcon = mainPanel.transform.Find("MainPanel").Find("CreditsIcon").gameObject;
+            topCreditsIcon = mainPanelI.transform.Find("MainPanel").Find("CreditsIcon").gameObject;
             rerollSkillsPrice = mainPanelI.transform.Find("MainPanel").Find("SkillPrice").gameObject.GetComponent<Text>();
             skillBonusPanel = mainPanelI.transform.Find("MainPanel").Find("SkillBonusList").GetChild(0).GetChild(0).gameObject;
 
