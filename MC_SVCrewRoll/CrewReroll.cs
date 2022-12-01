@@ -102,9 +102,8 @@ namespace MC_SVCrewRoll
             if (crew.maxNumberOfSkills == 0 || !CanPay(cost))
                 return;
 
-            bool modsMade = false;
+            int[] removedSkillVals = new int[crew.skills.Count];
             List<CrewSkill> newSkills = new List<CrewSkill>(crew.skills);
-            List<int> rolledThisCycle = new List<int>();
             foreach (CrewSkill skill in crew.skills)
             {
                 if(!data.Get(crew.id).Contains(skill))
@@ -115,30 +114,55 @@ namespace MC_SVCrewRoll
                         foreach (object bonus in lockedBonuses)
                             data.Get(crew.id).Remove(bonus);
 
-                    // Now get a new skill
-                    int value = skill.value;
-                    System.Random rand = new System.Random(skill.GetHashCode() * DateTime.UtcNow.Millisecond);
+                    // Remove skill
+                    removedSkillVals[crew.skills.IndexOf(skill)] = skill.value;
                     newSkills.Remove(skill);
-                    int nextSkill = rand.Next(0, 7);
-                    while (rolledThisCycle.Contains(nextSkill) &&
-                        (nextSkill != (int)skill.ID ? crew.GetSkillRank((CrewPosition)nextSkill) >= 0 : false) && 
-                        crew.skills.Count < 5)
-                    {
-                        nextSkill = rand.Next(0, 7);
-                    }
-                    rolledThisCycle.Add(nextSkill);
-                    CrewSkill newSkill = new CrewSkill(nextSkill, 0, crew.aiChar.level, crew.rarity, crew, true, rand);
-                    if (Main.cfgRetainLevel.Value)
-                        newSkill.value = value;
-                    newSkills.Add(newSkill);
-                    modsMade = true;
                 }
             }
 
             // Update, if any changes made (at least 1 unlocked skill)
-            if (modsMade && CanPay(cost))
+            if (newSkills.Count < crew.skills.Count && 
+                CanPay(cost))
             {
                 PayCost(cost);
+
+                // Create dupes list and get current dupes
+                List<int> dupeSkills = new List<int>();
+                List<int> newSkillIDs = new List<int>();
+                for (int i = 0; i < newSkills.Count; i++)
+                {
+                    newSkillIDs.Add((int)newSkills[i].ID);
+                    for (int j = 0; j < newSkills.Count; j++)
+                        if (i != j && newSkills[i].ID == newSkills[j].ID)
+                            dupeSkills.Add((int)newSkills[i].ID);
+                }
+
+                // Get new skills
+                for (int i = crew.skills.Count - 1; newSkills.Count < crew.skills.Count; i--)
+                {
+                    System.Random rand = new System.Random(removedSkillVals[i].GetHashCode() * DateTime.UtcNow.Millisecond);
+                    int newSkillID;
+                    do
+                    {
+                        newSkillID = rand.Next(0, 7);                        
+                        
+                        // Duplicate skill check
+                        if (newSkillIDs.Contains(newSkillID) &&
+                            !dupeSkills.Contains(newSkillID) &&
+                            rand.Next(0, 100001) <= (Main.cfgDualSkillChance.Value * 1000))
+                        {
+                            dupeSkills.Add(newSkillID);
+                            break;
+                        }
+                    } while (newSkillIDs.Contains(newSkillID));
+
+                    newSkillIDs.Add(newSkillID);
+                    CrewSkill newSkill = new CrewSkill(newSkillID, 0, crew.aiChar.level, crew.rarity, crew, true, rand);
+                    if (Main.cfgRetainLevel.Value)
+                        newSkill.value = removedSkillVals[i];
+                    newSkills.Add(newSkill); 
+                }
+
                 crew.skills = newSkills;
                 crew.SortSkills();
             }

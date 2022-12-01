@@ -28,6 +28,7 @@ namespace MC_SVCrewRoll
         public static ConfigEntry<int> cfgSkillBasePrice;
         public static ConfigEntry<int> cfgBonusBasePrice;
         public static ConfigEntry<bool> cfgRetainLevel;
+        public static ConfigEntry<float> cfgDualSkillChance;
         internal static MethodInfo crewSkillGetQuantityShipBonuses = AccessTools.Method(typeof(CrewSkill), "GetQuantityShipBonuses");
         internal static MethodInfo crewSkillMaxQuantityShipBonuses = AccessTools.Method(typeof(CrewSkill), "MaxQuantityShipBonuses");
         internal static DockingUI dockingUIInstance = null;        
@@ -74,6 +75,11 @@ namespace MC_SVCrewRoll
                 "Retain skill levels?",
                 true,
                 "If enabled, when skills are rerolled, they are replaced with skills of equal level.");
+            cfgDualSkillChance = Config.Bind<float>(
+                "Behaviour",
+                "% chance of duplicate skill",
+                0.1f,
+                "% chance of rolling a duplicate skill.");
         }
         
         [HarmonyPatch(typeof(DockingUI), nameof(DockingUI.OpenPanel))]
