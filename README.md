@@ -12,10 +12,13 @@ in .\Star Valor\BepInEx\plugins\
 
 Configurable:
 
-Base skill reroll cost (default: 50000)  
-Base bonus reroll cost (default: 75000)  
-Whether a skill's level is retained when rerolled (default: on)  
-% chance of allowing a duplicate skill (default: 0.5% - supports 3 decimal places, anything more is effectively rounded up).  
+Base skill reroll cost (default: 50000).  
+Base bonus reroll cost (default: 75000).  
+Whether a skill's level is retained when rerolled (default: on).  
+% chance of allowing a duplicate skill (default: 0.1% - supports 3 decimal places, anything more is effectively rounded up).  
+Restricted skill rolling (default: enabled - if disabled, duplicate and triplicate skill rolls are unrestricted).  
+Possible bonuses popup delay (default: 1s)  
+
 settings in .\Star Valor\BepInEx\config\mc.starvalor.crewroll.cfg after first time launching game with mod installed.  
 
 Use:
