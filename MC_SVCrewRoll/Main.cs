@@ -16,7 +16,7 @@ namespace MC_SVCrewRoll
         // BepInEx
         public const string pluginGuid = "mc.starvalor.crewroll";
         public const string pluginName = "SV Crew Roll";
-        public const string pluginVersion = "1.0.2";
+        public const string pluginVersion = "1.0.4";
 
         // Star Valor
         internal const int crewItemType = 5;
@@ -28,7 +28,9 @@ namespace MC_SVCrewRoll
         public static ConfigEntry<int> cfgSkillBasePrice;
         public static ConfigEntry<int> cfgBonusBasePrice;
         public static ConfigEntry<bool> cfgRetainLevel;
+        public static ConfigEntry<bool> cfgRestrictSkillGen;
         public static ConfigEntry<float> cfgDualSkillChance;
+        public static ConfigEntry<int> cfgPopupDelay;
         internal static MethodInfo crewSkillGetQuantityShipBonuses = AccessTools.Method(typeof(CrewSkill), "GetQuantityShipBonuses");
         internal static MethodInfo crewSkillMaxQuantityShipBonuses = AccessTools.Method(typeof(CrewSkill), "MaxQuantityShipBonuses");
         internal static DockingUI dockingUIInstance = null;        
@@ -40,6 +42,7 @@ namespace MC_SVCrewRoll
         {
             LoadAssets();
             Configure();
+            UI.mainRef = this;
             Harmony.CreateAndPatchAll(typeof(Main));
         }
 
@@ -56,10 +59,12 @@ namespace MC_SVCrewRoll
             UI.bonusItem = pack.transform.Find("mc_crewrollBonusItem").gameObject;
             UI.addSkillItem = pack.transform.Find("mc_crewrollAddSkillItem").gameObject;
             UI.confirmPanel = pack.transform.Find("mc_crewrollConfirmDlg").gameObject;
+            UI.possibleBonusesPopup = pack.transform.Find("mc_crewrollPossBonusPanel").gameObject;
         }
 
         private void Configure()
         {
+            // Costs
             cfgSkillBasePrice = Config.Bind<int>(
                 "Costs",
                 "Skill re-roll / lock",
@@ -70,6 +75,8 @@ namespace MC_SVCrewRoll
                 "Bonus re-roll / lock",
                 75000,
                 "Base price to lock a bonus");
+
+            // Behaviour
             cfgRetainLevel = Config.Bind<bool>(
                 "Behaviour",
                 "Retain skill levels?",
@@ -79,7 +86,19 @@ namespace MC_SVCrewRoll
                 "Behaviour",
                 "% chance of duplicate skill",
                 0.1f,
-                "% chance of rolling a duplicate skill.");
+                "% chance of rolling a duplicate skill if restricted skill generation is enabled.");
+            cfgRestrictSkillGen = Config.Bind<bool>(
+                "Behaviour",
+                "Restricted skill generation",
+                true,
+                "If disabled, duplicate and triplicate skills are not restricted.  Otherwise % chance to accept duplicates is used and triplicates are impossible.");
+
+            // UI
+            cfgPopupDelay = Config.Bind<int>(
+                "UI",
+                "Popup delay (s)",
+                1,
+                "Delay before possible bonuses popup appears.");
         }
         
         [HarmonyPatch(typeof(DockingUI), nameof(DockingUI.OpenPanel))]
@@ -119,6 +138,9 @@ namespace MC_SVCrewRoll
                 dockingUIInstance = __instance;
                 UI.Initialise(___lobbyPanel);
             }
+
+            if (AccessTools.FieldRefAccess<DockingUI, GameObject>("lobbyPanel")(__instance).activeSelf)
+                UI.CrewBtnSetActive(true);
         }
 
         [HarmonyPatch(typeof(DockingUI), nameof(DockingUI.CloseDockingStation))]

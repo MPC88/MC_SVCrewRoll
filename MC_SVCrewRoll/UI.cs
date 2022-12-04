@@ -1,5 +1,6 @@
 ﻿
 using HarmonyLib;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -23,6 +24,7 @@ namespace MC_SVCrewRoll
         internal static GameObject addSkillItem;
         internal static Sprite crewBtnIcon;
         internal static GameObject confirmPanel;
+        internal static GameObject possibleBonusesPopup;
         private static GameObject mainPanelI;
         private static Text crewMemberName;
         private static GameObject rerollSkillsBtn;
@@ -31,9 +33,12 @@ namespace MC_SVCrewRoll
         private static GameObject skillBonusPanel;        
         private static GameObject crewBtn;
         private static GameObject confirmPanelI;
+        private static GameObject possibleBonusesPopupI;
 
-        // States
+        // States and refs
+        internal static Main mainRef;
         internal static bool rerollWasLastLobbyPanel = false;
+        private static Dictionary<CrewPosition, string> crewPositionBonuses;
 
         internal static void Initialise(GameObject lobby)
         {
@@ -90,6 +95,11 @@ namespace MC_SVCrewRoll
             cancelButtonClickedEvent.AddListener(ConfirmPanelCancelClick);
             confirmPanelI.transform.Find("mc_crewrollPanel").Find("mc_crewrollCancel").GetComponent<Button>().onClick = cancelButtonClickedEvent;
             confirmPanelI.SetActive(false);
+
+            // Possible bonuses popup
+            possibleBonusesPopupI = GameObject.Instantiate(possibleBonusesPopup);
+            possibleBonusesPopupI.transform.SetParent(mainPanelI.transform, false);
+            possibleBonusesPopupI.SetActive(false);
         }
 
         internal static void CrewBtnSetActive(bool state)
@@ -273,6 +283,18 @@ namespace MC_SVCrewRoll
                 addButtonClickedEvent.AddListener(addButtonAction);
                 skillItemGO.transform.Find("mc_crewrollAdd").GetComponent<Button>().onClick = addButtonClickedEvent;
             }
+
+            // Possible Bonuses
+            EventTrigger eventTrigger = skillItemGO.transform.Find("mc_crewrollPossBonus").GetComponent<EventTrigger>();
+            EventTrigger.Entry onEnter = new EventTrigger.Entry();
+            onEnter.eventID = EventTriggerType.PointerEnter;
+            onEnter.callback.AddListener((data) => { PossibleBonusesEnter((PointerEventData)data); });
+            eventTrigger.triggers.Add(onEnter);
+            EventTrigger.Entry onExit = new EventTrigger.Entry();
+            onExit.eventID = EventTriggerType.PointerExit;
+            onExit.callback.AddListener((data) => { PossibleBonusesExit((PointerEventData)data); });
+            eventTrigger.triggers.Add(onExit);
+
         }
 
         private static void CreateBonusItem(CrewSkill skill, SkillShipBonus bonus, int itemCount, int skillIndex, int bonusIndex)
@@ -410,13 +432,93 @@ namespace MC_SVCrewRoll
             if (confirmPanelI.activeSelf)
                 confirmPanelI.SetActive(false);
 
-            CrewReroll.RerollSkills(cost);
+            if (Main.cfgRestrictSkillGen.Value)
+                CrewReroll.RerollSkills(cost);
+            else
+                CrewReroll.RerollSkillsUnrestricted(cost);
+
             RefreshMainPanel();
         }
 
         private static void ConfirmPanelCancelClick()
         {
             confirmPanelI.SetActive(false);
+        }
+
+        private static void PossibleBonusesEnter(PointerEventData data)
+        {
+            if (!possibleBonusesPopupI.activeSelf)
+                mainRef.StartCoroutine(PossibleBonusesPopup(data.position, data.pointerCurrentRaycast.gameObject));
+        }
+
+        private static void PossibleBonusesExit(PointerEventData data)
+        {
+            mainRef.StopAllCoroutines();
+            if (possibleBonusesPopupI.activeSelf)
+                possibleBonusesPopupI.SetActive(false);
+        }
+
+        private static IEnumerator PossibleBonusesPopup(Vector2 position, GameObject possBonusIcon)
+        {
+            yield return new WaitForSeconds(Main.cfgPopupDelay.Value);
+
+            SkillItemData skillItemData = possBonusIcon.transform.parent.GetComponent<SkillItemData>();
+
+            if (skillItemData == null)
+                yield break;
+
+            CrewPosition crewPosition = CrewReroll.crew.skills[skillItemData.skillIndex].ID;
+            possibleBonusesPopupI.transform.GetChild(1).GetComponent<Text>().text = 
+                GetPossibleSkillBonuses(crewPosition);
+            float xOffset = position.x > Screen.width / 2 ? -possibleBonusesPopupI.GetComponent<RectTransform>().rect.width : possibleBonusesPopupI.GetComponent<RectTransform>().rect.width; ;
+            float yOffset = position.y > Screen.height / 2 ? possibleBonusesPopupI.GetComponent<RectTransform>().rect.height : -possibleBonusesPopupI.GetComponent<RectTransform>().rect.height;            
+            possibleBonusesPopupI.transform.position = new Vector3(
+                position.x + (xOffset * 1.1f),
+                position.y + (yOffset * 1.1f), 
+                0);
+            possibleBonusesPopupI.SetActive(true);
+        }
+
+        private static string GetPossibleSkillBonuses(CrewPosition position)
+        {
+            if (crewPositionBonuses == null)
+                crewPositionBonuses = new Dictionary<CrewPosition, string>();
+
+            if (!crewPositionBonuses.ContainsKey(position))
+            {
+                string result = "";
+
+                foreach (ShipBonus bonus in AccessTools.StaticFieldRefAccess<List<ShipBonus>>(typeof(ShipBonusDB), "list"))
+                    if (bonus.minSkillRank < 99 && bonus.field == position)
+                    {
+                        string outString = "";
+                        if (bonus is SB_FleetShipBonuses)
+                        {
+                            SB_FleetShipBonuses.hideFleetShipGainText = true;
+                            outString = "Fleet: ";
+                        }
+                        outString += bonus.GetStr(1, 0, ColorSys.infoText3);
+                        outString = System.Text.RegularExpressions.Regex.Replace(outString,
+                            "\\+\\d+",
+                            "+n");
+                        outString = System.Text.RegularExpressions.Regex.Replace(outString,
+                            "<b>\\d+</b>",
+                            "<b>n</b>");
+                        outString = System.Text.RegularExpressions.Regex.Replace(outString,
+                            "<b>\\d+%</b>",
+                            "<b>n%</b>");
+                        if (bonus.minSkillRank == 1)
+                            outString += "  (Average)";
+                        else
+                            outString += "  (" + Lang.Get(23, bonus.minSkillRank, ItemDB.GetRarityColor(bonus.minSkillRank), "</color>", "").Trim() + ")";
+                        result += outString + "\n";
+                    }
+                        
+
+                crewPositionBonuses.Add(position, result);
+            }
+
+            return crewPositionBonuses[position];
         }
 
         internal class CrewListItemData : MonoBehaviour

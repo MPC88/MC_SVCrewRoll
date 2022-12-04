@@ -168,6 +168,53 @@ namespace MC_SVCrewRoll
             }
         }
 
+        internal static void RerollSkillsUnrestricted(int cost)
+        {
+            if (crew.maxNumberOfSkills == 0 || !CanPay(cost))
+                return;
+
+            bool modsMade = false;
+            List<CrewSkill> newSkills = new List<CrewSkill>(crew.skills);
+            List<int> rolledThisCycle = new List<int>();
+            foreach (CrewSkill skill in crew.skills)
+            {
+                if (!data.Get(crew.id).Contains(skill))
+                {
+                    // Remove locked bonuses, if any
+                    List<object> lockedBonuses = GetLockedBonusesOnSkill(skill);
+                    if (lockedBonuses != null)
+                        foreach (object bonus in lockedBonuses)
+                            data.Get(crew.id).Remove(bonus);
+
+                    // Now get a new skill
+                    int value = skill.value;
+                    System.Random rand = new System.Random(skill.GetHashCode() * DateTime.UtcNow.Millisecond);
+                    newSkills.Remove(skill);
+                    int nextSkill = rand.Next(0, 7);
+                    int rolls = 0;
+                    while (rolledThisCycle.Contains(nextSkill) && rolls < 5)
+                    {
+                        nextSkill = rand.Next(0, 7);
+                        rolls++;
+                    }
+                    rolledThisCycle.Add(nextSkill);
+                    CrewSkill newSkill = new CrewSkill(nextSkill, 0, crew.aiChar.level, crew.rarity, crew, true, rand);
+                    if (Main.cfgRetainLevel.Value)
+                        newSkill.value = value;
+                    newSkills.Add(newSkill);
+                    modsMade = true;
+                }
+            }
+
+            // Update, if any changes made (at least 1 unlocked skill)
+            if (modsMade && CanPay(cost))
+            {
+                PayCost(cost);
+                crew.skills = newSkills;
+                crew.SortSkills();
+            }
+        }
+
         internal static bool LockedBonusOnUnlockedSkill()
         {
             foreach (CrewSkill skill in crew.skills)
