@@ -471,7 +471,7 @@ namespace MC_SVCrewRoll
             possibleBonusesPopupI.transform.GetChild(1).GetComponent<Text>().text = 
                 GetPossibleSkillBonuses(crewPosition);
             float xOffset = position.x > Screen.width / 2 ? -possibleBonusesPopupI.GetComponent<RectTransform>().rect.width : possibleBonusesPopupI.GetComponent<RectTransform>().rect.width; ;
-            float yOffset = position.y > Screen.height / 2 ? possibleBonusesPopupI.GetComponent<RectTransform>().rect.height : -possibleBonusesPopupI.GetComponent<RectTransform>().rect.height;            
+            float yOffset = position.y > Screen.height / 2 ? -possibleBonusesPopupI.GetComponent<RectTransform>().rect.height : possibleBonusesPopupI.GetComponent<RectTransform>().rect.height;
             possibleBonusesPopupI.transform.position = new Vector3(
                 position.x + (xOffset * 1.1f),
                 position.y + (yOffset * 1.1f), 
