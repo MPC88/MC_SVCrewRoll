@@ -129,7 +129,7 @@ namespace MC_SVCrewRoll
                 GameObject.Destroy(crewList.transform.GetChild(i).gameObject);
 
             int cnt = 0;
-            List<CargoItem> ci = GameManager.instance.Player.GetComponent<CargoSystem>().cargo;
+            List<CargoItem> ci = Main.player.GetComponent<CargoSystem>().cargo;
             foreach (CargoItem item in ci)
             {
                 if (item.itemType == Main.crewItemType)

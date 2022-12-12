@@ -28,7 +28,7 @@ namespace MC_SVCrewRoll
             if (crew == null)
                 return;
 
-            List<CargoItem> ci = GameManager.instance.Player.GetComponent<CargoSystem>().cargo;
+            List<CargoItem> ci = Main.player.GetComponent<CargoSystem>().cargo;
             bool found = false;
             foreach (CargoItem item in ci)
             {
@@ -311,12 +311,12 @@ namespace MC_SVCrewRoll
 
         internal static bool CanPay(int cost)
         {
-            return GameManager.instance.Player.GetComponent<CargoSystem>().credits >= cost;
+            return Main.player.GetComponent<CargoSystem>().credits >= cost;
         }
 
         internal static void PayCost(int cost)
         {
-            GameManager.instance.Player.GetComponent<CargoSystem>().PayCreditCost(cost);
+            Main.player.GetComponent<CargoSystem>().PayCreditCost(cost);
         }
 
         [Serializable]

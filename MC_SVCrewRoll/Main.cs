@@ -16,7 +16,7 @@ namespace MC_SVCrewRoll
         // BepInEx
         public const string pluginGuid = "mc.starvalor.crewroll";
         public const string pluginName = "SV Crew Roll";
-        public const string pluginVersion = "1.0.5";
+        public const string pluginVersion = "1.0.6";
 
         // Star Valor
         internal const int crewItemType = 5;
@@ -33,7 +33,8 @@ namespace MC_SVCrewRoll
         public static ConfigEntry<int> cfgPopupDelay;
         internal static MethodInfo crewSkillGetQuantityShipBonuses = AccessTools.Method(typeof(CrewSkill), "GetQuantityShipBonuses");
         internal static MethodInfo crewSkillMaxQuantityShipBonuses = AccessTools.Method(typeof(CrewSkill), "MaxQuantityShipBonuses");
-        internal static DockingUI dockingUIInstance = null;        
+        internal static DockingUI dockingUIInstance = null;
+        internal static GameObject player = null;
 
         // Debug
         internal static ManualLogSource log = BepInEx.Logging.Logger.CreateLogSource(pluginName);
@@ -121,6 +122,9 @@ namespace MC_SVCrewRoll
                 UI.Initialise(___lobbyPanel);
             }
 
+            if (player == null)
+                player = GameObject.FindGameObjectWithTag("Player");
+
             UI.CrewBtnSetActive(true);
             if (UI.rerollWasLastLobbyPanel)
                 UI.MainPanelSetActive(true);
@@ -138,6 +142,9 @@ namespace MC_SVCrewRoll
                 dockingUIInstance = __instance;
                 UI.Initialise(___lobbyPanel);
             }
+
+            if (player == null)
+                player = GameObject.FindGameObjectWithTag("Player");
 
             if (AccessTools.FieldRefAccess<DockingUI, GameObject>("lobbyPanel")(__instance).activeSelf)
                 UI.CrewBtnSetActive(true);
@@ -187,6 +194,10 @@ namespace MC_SVCrewRoll
                 dockingUIInstance = __instance;
                 UI.Initialise(___lobbyPanel);
             }
+
+            if (player == null)
+                player = GameObject.FindGameObjectWithTag("Player");
+
             AccessTools.Method(typeof(DockingUI), "CloseLobbyPanels").Invoke(__instance, null);
             UI.MainPanelSetActive(true);
         }
@@ -233,6 +244,7 @@ namespace MC_SVCrewRoll
         [HarmonyPostfix]
         private static void MenuControlLoadGame_Post()
         {
+            Main.player = GameObject.FindGameObjectWithTag("Player");
             LoadData(GameData.gameFileIndex.ToString("00"));
         }
 
