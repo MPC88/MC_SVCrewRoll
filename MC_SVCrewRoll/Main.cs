@@ -16,7 +16,7 @@ namespace MC_SVCrewRoll
         // BepInEx
         public const string pluginGuid = "mc.starvalor.crewroll";
         public const string pluginName = "SV Crew Roll";
-        public const string pluginVersion = "1.0.6";
+        public const string pluginVersion = "1.0.7";
 
         // Star Valor
         internal const int crewItemType = 5;
@@ -124,6 +124,8 @@ namespace MC_SVCrewRoll
 
             if (player == null)
                 player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+                return;
 
             UI.CrewBtnSetActive(true);
             if (UI.rerollWasLastLobbyPanel)
@@ -145,6 +147,8 @@ namespace MC_SVCrewRoll
 
             if (player == null)
                 player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+                return;
 
             if (AccessTools.FieldRefAccess<DockingUI, GameObject>("lobbyPanel")(__instance).activeSelf)
                 UI.CrewBtnSetActive(true);
@@ -197,6 +201,8 @@ namespace MC_SVCrewRoll
 
             if (player == null)
                 player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+                return;
 
             AccessTools.Method(typeof(DockingUI), "CloseLobbyPanels").Invoke(__instance, null);
             UI.MainPanelSetActive(true);

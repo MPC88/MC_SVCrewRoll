@@ -27,6 +27,7 @@ namespace MC_SVCrewRoll
         internal static GameObject possibleBonusesPopup;
         private static GameObject mainPanelI;
         private static Text crewMemberName;
+        private static Text crewMemberLearningType;
         private static GameObject rerollSkillsBtn;
         private static GameObject topCreditsIcon;
         private static Text rerollSkillsPrice;
@@ -79,6 +80,7 @@ namespace MC_SVCrewRoll
             mainPanelI.transform.localScale = lobby.transform.localScale;
             mainPanelI.SetActive(false);
             crewMemberName = mainPanelI.transform.Find("mc_crewrollMainPanel").Find("mc_crewrollCrewMemberName").gameObject.GetComponent<Text>();
+            crewMemberLearningType = mainPanelI.transform.Find("mc_crewrollMainPanel").Find("mc_crewrollLearnType").gameObject.GetComponent<Text>();
             rerollSkillsBtn = mainPanelI.transform.Find("mc_crewrollMainPanel").Find("mc_crewrollRollSkills").gameObject;
             topCreditsIcon = mainPanelI.transform.Find("mc_crewrollMainPanel").Find("mc_crewrollCreditsIcon").gameObject;
             rerollSkillsPrice = mainPanelI.transform.Find("mc_crewrollMainPanel").Find("mc_crewrollSkillPrice").gameObject.GetComponent<Text>();
@@ -169,6 +171,7 @@ namespace MC_SVCrewRoll
             if (CrewReroll.crew == null)
             {
                 crewMemberName.gameObject.SetActive(false);
+                crewMemberLearningType.gameObject.SetActive(false);
                 rerollSkillsBtn.SetActive(false);
                 topCreditsIcon.SetActive(false);
                 rerollSkillsPrice.gameObject.SetActive(false);
@@ -176,12 +179,23 @@ namespace MC_SVCrewRoll
             }
 
             crewMemberName.gameObject.SetActive(true);
+            crewMemberLearningType.gameObject.SetActive(true);
             rerollSkillsBtn.SetActive(true);
             topCreditsIcon.SetActive(true);
             rerollSkillsPrice.gameObject.SetActive(true);
 
             // Update name
             crewMemberName.text = CrewReroll.crew.GetNameModified(16, false);
+
+            // Update learning type
+            int code = 65 + CrewReroll.crew.learningMode;
+            int code2 = 86 + CrewReroll.crew.learningMode;
+            if (CrewReroll.crew.learningMode == 3)
+            {
+                code = 164;
+                code2 = 165;
+            }
+            crewMemberLearningType.text = Lang.Get(23, code);
 
             // Update skill reroll price and event handler
             int price = CrewReroll.GetSkillRerollPrice();
@@ -366,6 +380,11 @@ namespace MC_SVCrewRoll
         {
             if (mainPanelI != null)
             {
+                if (Main.player == null)
+                    Main.player = GameObject.FindGameObjectWithTag("Player");
+                if (Main.player == null)
+                    return;
+
                 AccessTools.Method(typeof(DockingUI), "CloseLobbyPanels").Invoke(Main.dockingUIInstance, null);
                 MainPanelSetActive(true);
                 rerollWasLastLobbyPanel = true;
