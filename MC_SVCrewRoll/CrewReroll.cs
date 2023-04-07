@@ -140,16 +140,15 @@ namespace MC_SVCrewRoll
                 // Get new skills
                 for (int i = crew.skills.Count - 1; newSkills.Count < crew.skills.Count; i--)
                 {
-                    System.Random rand = new System.Random(removedSkillVals[i].GetHashCode() * DateTime.UtcNow.Millisecond);
                     int newSkillID;
                     do
                     {
-                        newSkillID = rand.Next(0, 7);                        
+                        newSkillID = CrewDB.Rand.Next(0, 7);                        
                         
                         // Duplicate skill check
                         if (newSkillIDs.Contains(newSkillID) &&
                             !dupeSkills.Contains(newSkillID) &&
-                            rand.Next(0, 100001) <= (Main.cfgDualSkillChance.Value * 1000))
+                            CrewDB.Rand.Next(0, 100001) <= (Main.cfgDualSkillChance.Value * 1000))
                         {
                             dupeSkills.Add(newSkillID);
                             break;
@@ -157,7 +156,7 @@ namespace MC_SVCrewRoll
                     } while (newSkillIDs.Contains(newSkillID));
 
                     newSkillIDs.Add(newSkillID);
-                    CrewSkill newSkill = new CrewSkill(newSkillID, 0, crew.aiChar.level, crew.rarity, crew, true, rand);
+                    CrewSkill newSkill = new CrewSkill(newSkillID, 0, crew.aiChar.level, crew.rarity, crew, true, CrewDB.Rand);
                     if (Main.cfgRetainLevel.Value)
                         newSkill.value = removedSkillVals[i];
                     newSkills.Add(newSkill); 
@@ -187,18 +186,17 @@ namespace MC_SVCrewRoll
                             data.Get(crew.id).Remove(bonus);
 
                     // Now get a new skill
-                    int value = skill.value;
-                    System.Random rand = new System.Random(skill.GetHashCode() * DateTime.UtcNow.Millisecond);
+                    int value = skill.value;                    
                     newSkills.Remove(skill);
-                    int nextSkill = rand.Next(0, 7);
+                    int nextSkill = CrewDB.Rand.Next(0, 7);
                     int rolls = 0;
                     while (rolledThisCycle.Contains(nextSkill) && rolls < 5)
                     {
-                        nextSkill = rand.Next(0, 7);
+                        nextSkill = CrewDB.Rand.Next(0, 7);
                         rolls++;
                     }
                     rolledThisCycle.Add(nextSkill);
-                    CrewSkill newSkill = new CrewSkill(nextSkill, 0, crew.aiChar.level, crew.rarity, crew, true, rand);
+                    CrewSkill newSkill = new CrewSkill(nextSkill, 0, crew.aiChar.level, crew.rarity, crew, true, CrewDB.Rand);
                     if (Main.cfgRetainLevel.Value)
                         newSkill.value = value;
                     newSkills.Add(newSkill);
@@ -247,8 +245,7 @@ namespace MC_SVCrewRoll
                 return;
 
             PayCost(cost);
-            System.Random rand = new System.Random(cost.GetHashCode() * DateTime.UtcNow.Millisecond);
-            crew.skills.Add(new CrewSkill((int)crew.DefineNextSkill(rand), 0, crew.aiChar.level, crew.rarity, crew, true, rand));
+            AccessTools.Method(typeof(CrewMember), "AddSkill", new Type[] { typeof(bool), typeof(System.Random) }).Invoke(crew, new object[] { true, null });
             AccessTools.FieldRefAccess<CrewMember, int>("nextSkillCount")(crew) = 0;
             crew.SortSkills();
         }
@@ -284,9 +281,9 @@ namespace MC_SVCrewRoll
 
                 // Add new bonuses
                 while ((int)Main.crewSkillGetQuantityShipBonuses.Invoke(crew.skills[skillIndex], null) < bonusCount)
-                {
-                    System.Random rand = new System.Random(cost.GetHashCode() * DateTime.UtcNow.Millisecond);
-                    crew.skills[skillIndex].AddSkillShipBonus(crew, false, null, rand);
+                {                    
+                    crew.skills[skillIndex].nextSkillShipBonus = -1;
+                    crew.skills[skillIndex].AddSkillShipBonus(crew, false, null, CrewDB.Rand);
                 }
 
                 // Sort
@@ -303,8 +300,7 @@ namespace MC_SVCrewRoll
                 return;
 
             PayCost(cost);
-            System.Random rand = new System.Random(cost.GetHashCode() * DateTime.UtcNow.Millisecond);
-            crew.skills[skillIndex].AddSkillShipBonus(crew, false, null, rand);
+            crew.skills[skillIndex].AddSkillShipBonus(crew, false, null, CrewDB.Rand);
             AccessTools.FieldRefAccess<CrewSkill, int>("nextShipBonusCount")(crew.skills[skillIndex]) = 0;
             crew.SortSkills();
         }
