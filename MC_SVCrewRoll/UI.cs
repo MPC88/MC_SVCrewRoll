@@ -506,6 +506,7 @@ namespace MC_SVCrewRoll
             if (!crewPositionBonuses.ContainsKey(position))
             {
                 string result = "";
+                int droneModsCnt = 0;
 
                 foreach (ShipBonus bonus in AccessTools.StaticFieldRefAccess<List<ShipBonus>>(typeof(ShipBonusDB), "list"))
                     if (bonus.minSkillRank < 99 && bonus.field == position)
@@ -513,10 +514,49 @@ namespace MC_SVCrewRoll
                         string outString = "";
                         if (bonus is SB_FleetShipBonuses)
                         {
-                            SB_FleetShipBonuses.hideFleetShipGainText = true;
+                            SB_FleetShipBonuses.hideFleetShipGainText = true;                            
                             outString = "Fleet: ";
+
+                            if((bonus as SB_FleetShipBonuses).shipBonuses[0] is SB_Hull)
+                            {
+                                SB_Hull tBonus = (SB_Hull)ScriptableObject.CreateInstance(typeof(SB_Hull));
+                                tBonus.hullBonus = 1;
+                                outString += " " + tBonus.GetStr(1, 1, ColorSys.infoText3);
+                            }
+                            else
+                                outString += bonus.GetStr(1, 0, ColorSys.infoText3);
                         }
-                        outString += bonus.GetStr(1, 0, ColorSys.infoText3);
+                        else if (bonus is SB_DroneModifiers)
+                        {
+                            SB_DroneModifiers tBonus = (SB_DroneModifiers)ScriptableObject.CreateInstance(typeof(SB_DroneModifiers));
+                            bonus.minSkillRank = 0;
+                            switch(droneModsCnt)
+                            {
+                                case 0:
+                                    tBonus.dmgMod = 1;
+                                    tBonus.speedBonus = 0;
+                                    tBonus.HPBonus = 0;
+                                    break;
+                                case 1:
+                                    tBonus.dmgMod = 0;
+                                    tBonus.speedBonus = 1;
+                                    tBonus.HPBonus = 0;
+                                    break;
+                                case 2:
+                                    tBonus.dmgMod = 0;
+                                    tBonus.speedBonus = 0;
+                                    tBonus.HPBonus = 1;
+                                    break;
+                            }
+                            droneModsCnt++;
+
+                            outString = tBonus.GetStr(1, 1, ColorSys.infoText3).Replace(Lang.Get(0, 425) + ":\n", Lang.Get(0, 425) + ": ");                            
+                        }
+                        else
+                        {
+                            outString += bonus.GetStr(1, 0, ColorSys.infoText3);
+                        }
+
                         outString = System.Text.RegularExpressions.Regex.Replace(outString,
                             "\\+\\d+",
                             "+n");
@@ -530,10 +570,11 @@ namespace MC_SVCrewRoll
                             outString += "  (Average)";
                         else
                             outString += "  (" + Lang.Get(23, bonus.minSkillRank, ItemDB.GetRarityColor(bonus.minSkillRank), "</color>", "").Trim() + ")";
-                        result += outString + "\n";
-                    }
-                        
+                        outString += "\n";
 
+                        result += outString;
+                    }
+                
                 crewPositionBonuses.Add(position, result);
             }
 
