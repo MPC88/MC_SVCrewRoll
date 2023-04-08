@@ -521,7 +521,7 @@ namespace MC_SVCrewRoll
                             {
                                 SB_Hull tBonus = (SB_Hull)ScriptableObject.CreateInstance(typeof(SB_Hull));
                                 tBonus.hullBonus = 1;
-                                outString += " " + tBonus.GetStr(1, 1, ColorSys.infoText3);
+                                outString += "  " + tBonus.GetStr(1, 1, ColorSys.infoText3);
                             }
                             else
                                 outString += bonus.GetStr(1, 0, ColorSys.infoText3);
