@@ -15,8 +15,8 @@ namespace MC_SVCrewRoll
     {
         // BepInEx
         public const string pluginGuid = "mc.starvalor.crewroll";
-        public const string pluginName = "SV Crew Roll";
-        public const string pluginVersion = "1.0.9";
+        public const string pluginName = "SV Crew Roll_betabetayo";
+        public const string pluginVersion = "1.1.0";
 
         // Star Valor
         internal const int crewItemType = 5;

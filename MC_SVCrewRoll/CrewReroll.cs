@@ -312,7 +312,7 @@ namespace MC_SVCrewRoll
 
         internal static void PayCost(int cost)
         {
-            Main.player.GetComponent<CargoSystem>().PayCreditCost(cost);
+            Main.player.GetComponent<CargoSystem>().PayCreditCost(cost, false);
         }
 
         [Serializable]
