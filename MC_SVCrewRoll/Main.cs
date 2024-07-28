@@ -15,8 +15,8 @@ namespace MC_SVCrewRoll
     {
         // BepInEx
         public const string pluginGuid = "mc.starvalor.crewroll";
-        public const string pluginName = "SV Crew Roll_betabetayo";
-        public const string pluginVersion = "1.1.0";
+        public const string pluginName = "SV Crew Roll";
+        public const string pluginVersion = "1.1.1";
 
         // Star Valor
         internal const int crewItemType = 5;
@@ -285,6 +285,17 @@ namespace MC_SVCrewRoll
             catch
             {
                 SideInfo.AddMsg("<color=red>CrewRoll mod load failed.</color>");
+            }
+        }
+
+        [HarmonyPatch(typeof(MenuControl), nameof(MenuControl.DeleteSaveGame))]
+        [HarmonyPrefix]
+        private static void DeleteSave_Pre()
+        {
+            if (GameData.ExistsAnySaveFile(GameData.gameFileIndex) &&
+                File.Exists(Application.dataPath + GameData.saveFolderName + modSaveFolder + modSaveFilePrefix + GameData.gameFileIndex.ToString("00") + ".dat"))
+            {
+                File.Delete(Application.dataPath + GameData.saveFolderName + modSaveFolder + modSaveFilePrefix + GameData.gameFileIndex.ToString("00") + ".dat");
             }
         }
     }
