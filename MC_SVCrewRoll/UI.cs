@@ -25,14 +25,14 @@ namespace MC_SVCrewRoll
         internal static Sprite crewBtnIcon;
         internal static GameObject confirmPanel;
         internal static GameObject possibleBonusesPopup;
+        private static GameObject crewBtn;
         private static GameObject mainPanelI;
         private static Text crewMemberName;
         private static Text crewMemberLearningType;
         private static GameObject rerollSkillsBtn;
         private static GameObject topCreditsIcon;
         private static Text rerollSkillsPrice;
-        private static GameObject skillBonusPanel;        
-        private static GameObject crewBtn;
+        private static GameObject skillBonusPanel;                
         private static GameObject confirmPanelI;
         private static GameObject possibleBonusesPopupI;
 
@@ -55,7 +55,7 @@ namespace MC_SVCrewRoll
             Transform srcBtn = mainButtons.GetChild(3);
             crewBtn = GameObject.Instantiate(srcBtn.gameObject);
             crewBtn.gameObject.name = "LobbyCrewButton";
-            crewBtn.transform.Find("Image").GetComponentInChildren<Image>().sprite = crewBtnIcon;
+            crewBtn.transform.Find("Image").Find("Sprite").GetComponentInChildren<Image>().sprite = crewBtnIcon;
             crewBtn.transform.SetParent(srcBtn.parent);
             crewBtn.transform.localPosition = new Vector3(
                 srcBtn.transform.localPosition.x + 5,

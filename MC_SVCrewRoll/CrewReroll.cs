@@ -102,11 +102,12 @@ namespace MC_SVCrewRoll
             if (crew.maxNumberOfSkills == 0 || !CanPay(cost))
                 return;
 
-            int[] removedSkillVals = new int[crew.skills.Count];
+            //int[] oldSkillValues = new int[crew.skills.Count];
+            List<int> oldSkillValues = new List<int>();
             List<CrewSkill> newSkills = new List<CrewSkill>(crew.skills);
             foreach (CrewSkill skill in crew.skills)
-            {
-                if(!data.Get(crew.id).Contains(skill))
+            {                
+                if (!data.Get(crew.id).Contains(skill))
                 {
                     // Remove locked bonuses, if any
                     List<object> lockedBonuses = GetLockedBonusesOnSkill(skill);
@@ -115,7 +116,8 @@ namespace MC_SVCrewRoll
                             data.Get(crew.id).Remove(bonus);
 
                     // Remove skill
-                    removedSkillVals[crew.skills.IndexOf(skill)] = skill.value;
+                    oldSkillValues.Add(skill.value);
+                    //oldSkillValues[crew.skills.IndexOf(skill)] = skill.value;
                     newSkills.Remove(skill);
                 }
             }
@@ -138,6 +140,7 @@ namespace MC_SVCrewRoll
                 }
 
                 // Get new skills
+                int cnt = 0;
                 for (int i = crew.skills.Count - 1; newSkills.Count < crew.skills.Count; i--)
                 {
                     int newSkillID;
@@ -158,8 +161,9 @@ namespace MC_SVCrewRoll
                     newSkillIDs.Add(newSkillID);
                     CrewSkill newSkill = new CrewSkill(newSkillID, 0, crew.aiChar.level, crew.rarity, crew, true, CrewDB.Rand);
                     if (Main.cfgRetainLevel.Value)
-                        newSkill.value = removedSkillVals[i];
-                    newSkills.Add(newSkill); 
+                        newSkill.value = oldSkillValues[cnt];
+                    newSkills.Add(newSkill);
+                    cnt++;
                 }
 
                 crew.skills = newSkills;
