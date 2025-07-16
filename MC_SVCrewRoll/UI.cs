@@ -348,8 +348,6 @@ namespace MC_SVCrewRoll
 
         private static void UpdatePrices()
         {
-            CrewReroll.GetSkillRerollPrice();
-
             // Re-roll all
             rerollSkillsPrice.text = CrewReroll.GetSkillRerollPrice().ToString();
 
@@ -358,10 +356,10 @@ namespace MC_SVCrewRoll
             {
                 Transform item = skillBonusPanel.transform.GetChild(childI);
                 SkillItemData sid = item.GetComponent<SkillItemData>();
-                
+
                 if (sid is BonusItemData)
                     item.Find("mc_crewrollPrice").GetComponent<Text>().text =
-                        CrewReroll.GeneratePrice(CrewReroll.crew.skills[sid.skillIndex].skillBonus[(sid as BonusItemData).bonusIndex].level, Main.cfgBonusBasePrice.Value).ToString();
+                      CrewReroll.GeneratePrice(CrewReroll.crew.skills[sid.skillIndex].skillBonus[(sid as BonusItemData).bonusIndex].level, Main.cfgBonusBasePrice.Value).ToString();
                 else
                     item.Find("mc_crewrollPrice").GetComponent<Text>().text =
                         CrewReroll.GeneratePrice(CrewReroll.crew.skills[sid.skillIndex].Rank(false), Main.cfgSkillBasePrice.Value).ToString();
