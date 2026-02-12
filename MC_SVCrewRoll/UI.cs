@@ -329,6 +329,7 @@ namespace MC_SVCrewRoll
                 bonus.GetString(
                     ColorSys.infoText3,
                     null,
+                    null,
                     false,
                     false).Replace("\n", "").Replace("\t", " ").Replace(Lang.Get(23, 137) + ":", "");
 
